@@ -21,6 +21,28 @@ const skills = [
     name: 'Tailwind CSS',
     icon: 'https://img.icons8.com/color/48/000000/tailwindcss.png',
   },
+  {
+    name: 'Java',
+    icon: 'https://img.icons8.com/color/48/000000/java-coffee-cup-logo.png',
+  },
+  {
+    name: 'Python',
+    icon: 'https://img.icons8.com/color/48/000000/python.png',
+  },
+  {
+    name: 'MongoDB',
+    icon: 'https://img.icons8.com/color/48/000000/mongodb.png',
+  },
+  
+  {
+    name: 'MySQL',
+    icon: 'https://img.icons8.com/color/48/000000/mysql-logo.png',
+  },
+  {
+    name: 'C',
+    icon: 'https://img.icons8.com/color/48/c-programming.png',
+  }
+  
 ];
 
 const Skills = () => {

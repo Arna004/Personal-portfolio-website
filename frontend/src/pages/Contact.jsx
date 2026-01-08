@@ -1,18 +1,39 @@
 import React, { useState } from 'react';
 
 const Contact = () => {
-  // Simple form state for demonstration (no backend)
   const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+  
+  // Status states: 'idle', 'submitting', 'success', 'error'
+  const [status, setStatus] = useState('idle'); 
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    // Here you would handle sending the form data to a backend or email service
+    setStatus('submitting');
+
+    try {
+      // Send data to your backend
+      const response = await fetch('http://localhost:5000/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        setForm({ name: '', email: '', message: '' }); // Clear form
+      } else {
+        setStatus('error');
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus('error');
+    }
   };
 
   return (
@@ -25,6 +46,8 @@ const Contact = () => {
       padding: '2.5rem 2rem'
     }}>
       <h2 style={{ color: '#ff4b4b', marginBottom: '1.5rem' }}>Contact Me</h2>
+      
+      {/* --- Existing Info Section (Unchanged) --- */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -36,21 +59,24 @@ const Contact = () => {
           padding: '1.5rem 1rem',
           marginBottom: '1rem'
         }}>
-          <p style={{ marginBottom: 8 }}>
+           <p style={{ marginBottom: 8 }}>
             <strong>Email:</strong> <a href="mailto:arna532004@gmail.com" style={{ color: '#ff4b4b' }}>arna532004@gmail.com</a>
           </p>
           <p style={{ marginBottom: 8 }}>
-            <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/arna-chaulia-a6917626a/" target="_blank" rel="noreferrer" style={{ color: '#ff4b4b' }}>https://www.linkedin.com/in/arna-chaulia-a6917626a/</a>
+            <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/arna-chaulia-a6917626a/" target="_blank" rel="noreferrer" style={{ color: '#ff4b4b' }}>LinkedIn Profile</a>
           </p>
           <p>
-            <strong>GitHub:</strong> <a href="https://github.com/Arna004" target="_blank" rel="noreferrer" style={{ color: '#ff4b4b' }}>https://github.com/Arna004</a>
+            <strong>GitHub:</strong> <a href="https://github.com/Arna004" target="_blank" rel="noreferrer" style={{ color: '#ff4b4b' }}>GitHub Profile</a>
           </p>
         </div>
+
         <div>
           <h3 style={{ marginBottom: 12 }}>Send a Message</h3>
-          {submitted ? (
-            <div style={{ color: '#4caf50', margin: '1rem 0' }}>
-              Thank you for reaching out! I'll get back to you soon.
+          
+          {/* --- Success Message --- */}
+          {status === 'success' ? (
+            <div style={{ color: '#4caf50', margin: '1rem 0', fontWeight: 'bold' }}>
+              Thank you! Your message has been sent successfully.
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -61,6 +87,7 @@ const Contact = () => {
                 value={form.name}
                 onChange={handleChange}
                 required
+                disabled={status === 'submitting'}
                 style={{
                   padding: '0.7rem',
                   borderRadius: 6,
@@ -75,6 +102,7 @@ const Contact = () => {
                 value={form.email}
                 onChange={handleChange}
                 required
+                disabled={status === 'submitting'}
                 style={{
                   padding: '0.7rem',
                   borderRadius: 6,
@@ -89,6 +117,7 @@ const Contact = () => {
                 onChange={handleChange}
                 required
                 rows={4}
+                disabled={status === 'submitting'}
                 style={{
                   padding: '0.7rem',
                   borderRadius: 6,
@@ -96,19 +125,29 @@ const Contact = () => {
                   fontSize: '1rem'
                 }}
               />
+              
+              {/* --- Error Message --- */}
+              {status === 'error' && (
+                <div style={{ color: '#ff4b4b', fontSize: '0.9rem' }}>
+                  Something went wrong. Please try again or email me directly.
+                </div>
+              )}
+
               <button
                 type="submit"
+                disabled={status === 'submitting'}
                 style={{
                   padding: '0.7rem 1.5rem',
-                  backgroundColor: '#ff4b4b',
+                  backgroundColor: status === 'submitting' ? '#ccc' : '#ff4b4b',
                   color: 'white',
                   border: 'none',
                   borderRadius: 8,
                   fontSize: '1.1rem',
-                  cursor: 'pointer'
+                  cursor: status === 'submitting' ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.3s'
                 }}
               >
-                Send
+                {status === 'submitting' ? 'Sending...' : 'Send'}
               </button>
             </form>
           )}
