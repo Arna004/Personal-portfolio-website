@@ -5,9 +5,9 @@ const projects = [
   {
     title: 'Portfolio Website',
     description: 'A personal portfolio website to showcase my skills, projects, and experience. Built with React and styled-components.',
-    link: 'https://your-portfolio-link.com',
+    link: '/',
     image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=400&q=80',
-    tags: ['React', 'Styled-Components', 'Frontend']
+    tags: ['React', 'Styled-Components', 'Frontend','Backend','Javascript','TailwindCSS','HTML','Express.js','Node.jS']
   },
   {
     title: 'Online Ticket Booking System',
@@ -16,13 +16,7 @@ const projects = [
     image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80',
     tags: ['Full Stack', 'Node.js', 'MongoDB', 'Express']
   },
-  {
-    title: 'Weather App',
-    description: 'A responsive weather application that fetches real-time weather data using a public API and displays it with a clean UI.',
-    link: 'https://github.com/yourusername/weather-app',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-    tags: ['React', 'API', 'Responsive']
-  }
+  
 ];
 
 const Projects = () => {
