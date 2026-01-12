@@ -7,7 +7,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+// REPLACE THIS:
+// app.use(cors());
+
+// WITH THIS:
+app.use(cors({
+  origin: '*', // Allow requests from ANYWHERE (Easiest for testing)
+  methods: ['POST', 'GET'],
+  credentials: true
+}));
 app.use(express.json());
 
 // 1. Setup Nodemailer Transporter

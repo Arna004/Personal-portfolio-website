@@ -16,13 +16,15 @@ const Contact = () => {
 
     try {
       // Send data to your backend
-      const response = await fetch('https://personal-portfolio-website-mv0a.onrender.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      });
+      // Add "/contact" at the end so it matches your server.js route
+const response = await fetch('https://personal-portfolio-website-mv0a.onrender.com/contact', 
+  {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(form),
+});
 
       if (response.ok) {
         setStatus('success');
