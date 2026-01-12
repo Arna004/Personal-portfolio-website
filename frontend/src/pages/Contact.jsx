@@ -16,7 +16,7 @@ const Contact = () => {
 
     try {
       // Send data to your backend
-      const response = await fetch('http://localhost:5000/contact', {
+      const response = await fetch('https://personal-portfolio-website-mv0a.onrender.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
