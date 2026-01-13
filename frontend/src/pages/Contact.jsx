@@ -2,38 +2,53 @@ import React, { useState } from 'react';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
-  
-  // Status states: 'idle', 'submitting', 'success', 'error'
-  const [status, setStatus] = useState('idle'); 
+  const [status, setStatus] = useState('idle'); // 'idle', 'submitting', 'success', 'error'
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('submitting');
+    console.log('--- Starting Form Submission ---');
 
     try {
-      // Send data to your backend
-      // Add "/contact" at the end so it matches your server.js route
-const response = await fetch('https://personal-portfolio-website-mv0a.onrender.com/contact', 
-  {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(form),
-});
+      // 1. Create a timeout controller to abort request if it takes too long (e.g., 60 seconds)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); 
+
+      // 2. Send data to your backend
+      const response = await fetch('https://personal-portfolio-website-mv0a.onrender.com/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+        signal: controller.signal, // Attach the signal
+      });
+
+      // Clear the timeout since the response came back
+      clearTimeout(timeoutId);
+
+      console.log('Response Status:', response.status);
 
       if (response.ok) {
         setStatus('success');
         setForm({ name: '', email: '', message: '' }); // Clear form
+        console.log('Success: Message sent.');
       } else {
         setStatus('error');
+        console.error('Server Error:', response.statusText);
       }
     } catch (error) {
-      console.error(error);
+      console.error('Fetch Error:', error);
+      
+      // Check if it was a timeout
+      if (error.name === 'AbortError') {
+        alert("The server took too long to respond. It might be waking up. Please try again in a minute.");
+      }
+      
       setStatus('error');
     }
   };
@@ -49,12 +64,7 @@ const response = await fetch('https://personal-portfolio-website-mv0a.onrender.c
     }}>
       <h2 style={{ color: '#ff4b4b', marginBottom: '1.5rem' }}>Contact Me</h2>
       
-      {/* --- Existing Info Section (Unchanged) --- */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem'
-      }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{
           background: 'rgba(255,255,255,0.05)',
           borderRadius: 12,
@@ -75,10 +85,15 @@ const response = await fetch('https://personal-portfolio-website-mv0a.onrender.c
         <div>
           <h3 style={{ marginBottom: 12 }}>Send a Message</h3>
           
-          {/* --- Success Message --- */}
+          {/* Success Message */}
           {status === 'success' ? (
             <div style={{ color: '#4caf50', margin: '1rem 0', fontWeight: 'bold' }}>
               Thank you! Your message has been sent successfully.
+              <button 
+                onClick={() => setStatus('idle')} 
+                style={{ marginLeft: '10px', padding: '5px 10px', cursor: 'pointer', borderRadius: '4px', border: '1px solid #4caf50' }}>
+                Send another
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -128,10 +143,10 @@ const response = await fetch('https://personal-portfolio-website-mv0a.onrender.c
                 }}
               />
               
-              {/* --- Error Message --- */}
+              {/* Error Message */}
               {status === 'error' && (
                 <div style={{ color: '#ff4b4b', fontSize: '0.9rem' }}>
-                  Something went wrong. Please try again or email me directly.
+                  Something went wrong. Check the console (F12) for details.
                 </div>
               )}
 

@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config(); 
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
@@ -6,24 +6,30 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-// REPLACE THIS:
-// app.use(cors());
-
-// WITH THIS:
+// --- FIX #1: CORS Configuration ---
+// Removed 'credentials: true' because it conflicts with origin: '*'
 app.use(cors({
-  origin: '*', // Allow requests from ANYWHERE (Easiest for testing)
+  origin: '*', 
   methods: ['POST', 'GET'],
-  credentials: true
 }));
+
 app.use(express.json());
 
 // 1. Setup Nodemailer Transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Your email address
-    pass: process.env.EMAIL_PASS  // Your App Password (not your normal password)
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS  
+  }
+});
+
+// Verify connection configuration (Optional but helpful for debugging)
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log('Transporter Error:', error);
+  } else {
+    console.log("Server is ready to take our messages");
   }
 });
 
@@ -35,11 +41,14 @@ app.get('/', (req, res) => {
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
+  // --- FIX #2: Email Logic ---
   const mailOptions = {
-    from: email, // The sender's email (from the form)
-    to: process.env.EMAIL_USER, // Your email (where you want to receive it)
+    from: process.env.EMAIL_USER, // MUST be your authenticated email
+    replyTo: email,               // The visitor's email goes here
+    to: process.env.EMAIL_USER,   // Sending it to yourself
     subject: `Portfolio Contact from ${name}`,
-    text: `You have a new message from:
+    text: `You have a new message from your portfolio website:
+    
     Name: ${name}
     Email: ${email}
     
