@@ -6,10 +6,8 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- FIX #1: CORS Configuration ---
-// Removed 'credentials: true' because it conflicts with origin: '*'
 app.use(cors({
-  origin: '*', 
+  origin: '*', // Allow all origins (fine for portfolio)
   methods: ['POST', 'GET'],
 }));
 
@@ -20,11 +18,16 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS  
+    // IMPORTANT: This must be an App Password, not your login password
+    pass: process.env.EMAIL_PASS   
+  },
+  // Add this to prevent handshake issues on Render/cloud hosting
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
-// Verify connection configuration (Optional but helpful for debugging)
+// Verify connection
 transporter.verify(function (error, success) {
   if (error) {
     console.log('Transporter Error:', error);
@@ -37,23 +40,15 @@ app.get('/', (req, res) => {
   res.send('Portfolio backend is running!');
 });
 
-// 2. Create the Email Endpoint
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
-  // --- FIX #2: Email Logic ---
   const mailOptions = {
-    from: process.env.EMAIL_USER, // MUST be your authenticated email
-    replyTo: email,               // The visitor's email goes here
-    to: process.env.EMAIL_USER,   // Sending it to yourself
+    from: process.env.EMAIL_USER, 
+    replyTo: email,              
+    to: process.env.EMAIL_USER,   
     subject: `Portfolio Contact from ${name}`,
-    text: `You have a new message from your portfolio website:
-    
-    Name: ${name}
-    Email: ${email}
-    
-    Message:
-    ${message}`
+    text: `You have a new message from your portfolio website:\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
   };
 
   try {
@@ -61,8 +56,9 @@ app.post('/contact', async (req, res) => {
     console.log('Email sent successfully');
     res.status(200).json({ message: 'Email sent successfully!' });
   } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ error: 'Failed to send email' });
+    // LOG THE ACTUAL ERROR so you can see it in Render Dashboard
+    console.error('Error sending email:', error); 
+    res.status(500).json({ error: 'Failed to send email', details: error.message });
   }
 });
 

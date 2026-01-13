@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [status, setStatus] = useState('idle'); // 'idle', 'submitting', 'success', 'error'
+  const [status, setStatus] = useState('idle'); 
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -11,45 +11,43 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('submitting');
-    console.log('--- Starting Form Submission ---');
+    
+    // 1. Increase timeout to allow Render server to wake up
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 Minutes
 
     try {
-      // 1. Create a timeout controller to abort request if it takes too long (e.g., 60 seconds)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); 
-
-      // 2. Send data to your backend
       const response = await fetch('https://personal-portfolio-website-mv0a.onrender.com/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(form),
-        signal: controller.signal, // Attach the signal
+        signal: controller.signal,
       });
 
-      // Clear the timeout since the response came back
-      clearTimeout(timeoutId);
-
-      console.log('Response Status:', response.status);
+      clearTimeout(timeoutId); // Clear timeout if response received
 
       if (response.ok) {
         setStatus('success');
-        setForm({ name: '', email: '', message: '' }); // Clear form
+        setForm({ name: '', email: '', message: '' });
         console.log('Success: Message sent.');
       } else {
+        // Handle server errors (like the 500 error)
         setStatus('error');
-        console.error('Server Error:', response.statusText);
+        const errorData = await response.json();
+        console.error('Server Error:', errorData);
+        alert(`Failed to send: ${errorData.details || 'Server error'}`);
       }
     } catch (error) {
       console.error('Fetch Error:', error);
       
-      // Check if it was a timeout
       if (error.name === 'AbortError') {
-        alert("The server took too long to respond. It might be waking up. Please try again in a minute.");
+        alert("The request timed out. The server might be waking up (Render Free Tier). Please click Send again.");
+      } else {
+        setStatus('error');
+        alert("Network error. Please try again.");
       }
-      
-      setStatus('error');
     }
   };
 
@@ -85,7 +83,6 @@ const Contact = () => {
         <div>
           <h3 style={{ marginBottom: 12 }}>Send a Message</h3>
           
-          {/* Success Message */}
           {status === 'success' ? (
             <div style={{ color: '#4caf50', margin: '1rem 0', fontWeight: 'bold' }}>
               Thank you! Your message has been sent successfully.
@@ -143,10 +140,9 @@ const Contact = () => {
                 }}
               />
               
-              {/* Error Message */}
               {status === 'error' && (
                 <div style={{ color: '#ff4b4b', fontSize: '0.9rem' }}>
-                  Something went wrong. Check the console (F12) for details.
+                  Failed to send message. Please try again.
                 </div>
               )}
 
