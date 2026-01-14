@@ -7,8 +7,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: '*', // Allow all origins (fine for portfolio)
-  methods: ['POST', 'GET'],
+  origin: [
+    "http://localhost:3000",                  // Allow your local computer
+    "https://personal-portfolio-website-bgpb.onrender.com"     // Allow your live website
+  ],
+  credentials: true
 }));
 
 app.use(express.json());
