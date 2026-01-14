@@ -37,8 +37,8 @@ app.use(express.json());
 const transporter = nodemailer.createTransport({
   // service: 'gmail',  <-- REMOVED. This was causing the conflict.
   host: 'smtp.gmail.com', // Manually set host
-  port: 587,              // Manually set port
-  secure: false,          // False for 587 (STARTTLS)
+  port: 465,              // Manually set port
+  secure: true,          // False for 587 (STARTTLS)
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -93,4 +93,4 @@ app.post('/contact', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
-});
+}); 
