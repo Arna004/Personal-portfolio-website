@@ -17,24 +17,31 @@ app.use(cors({
 app.use(express.json());
 
 // 1. Setup Nodemailer Transporter
+// server.js
+
+// ... imports
+
+// 1. Setup Nodemailer Transporter (UPDATED)
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // or host: 'smtp.gmail.com'
-  port: 465,        // Ensure this is 465 for secure
-  secure: true,     // true for 465, false for other ports
+  service: 'gmail',
+  host: 'smtp.gmail.com', // Explicitly define the host
+  port: 587,              // CHANGE: Use 587 instead of 465
+  secure: false,          // CHANGE: Must be false for port 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  // --- ADD THESE LINES TO FIX THE TIMEOUT ---
   tls: {
-    ciphers: "SSLv3",      // Helps with older SSL protocols
-    rejectUnauthorized: false, // Sometimes helps on cloud servers
+    ciphers: "SSLv3",
+    rejectUnauthorized: false, 
   },
-  family: 4,               // <--- CRITICAL: Forces IPv4
-  connectionTimeout: 10000, // Wait 10 seconds before timing out
-  greetingTimeout: 5000,    // Wait 5 seconds for server greeting
-  socketTimeout: 10000      // Wait 10 seconds for socket inactivity
+  // Keep these timeout settings, they are good practice
+  connectionTimeout: 10000, 
+  greetingTimeout: 5000,
+  socketTimeout: 10000 
 });
+
+// ... rest of your code
 
 // Verify connection
 transporter.verify(function (error, success) {
