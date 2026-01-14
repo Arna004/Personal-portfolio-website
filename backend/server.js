@@ -6,34 +6,24 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- 1. CRITICAL: Self-Diagnosis Check ---
-// This will print to your Render logs if variables are missing
+// --- 1. Environment Check ---
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.error("__________________________________________________________");
-  console.error("🔴 CRITICAL ERROR: Environment Variables are missing!");
-  console.error("   Render cannot see your .env file.");
-  console.error("   You MUST go to Render Dashboard -> Environment Tab");
-  console.error("   and add 'EMAIL_USER' and 'EMAIL_PASS'.");
-  console.error("__________________________________________________________");
+  console.error("🔴 CRITICAL: Env vars missing. Check Render Dashboard.");
 } else {
-  console.log("✅ Environment Variables detected. Email User:", process.env.EMAIL_USER);
+  console.log("✅ Env vars detected. User:", process.env.EMAIL_USER);
 }
 
-// --- 2. Robust CORS Setup ---
+// --- 2. CORS Setup ---
 const allowedOrigins = [
   "http://localhost:3000",
-  "http://localhost:5173", 
-  "https://personal-portfolio-website-frrf.onrender.com" // Your specific live site
+  "https://personal-portfolio-website-frrf.onrender.com"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
-      // Allow it anyway for simple troubleshooting, but log it
-      console.log("⚠️ Warning: Request from blocked origin:", origin);
-      // For strict security, uncomment the next line:
-      // return callback(new Error('CORS Policy Error'), false);
+      console.log("⚠️ Blocked Origin:", origin);
     }
     return callback(null, true);
   },
@@ -43,31 +33,35 @@ app.use(cors({
 
 app.use(express.json());
 
-// --- 3. Nodemailer (Cloud-Optimized) ---
+// --- 3. Nodemailer (STRICT CONFIGURATION) ---
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  host: 'smtp.gmail.com', 
-  port: 587,              // 587 is the standard for cloud servers
-  secure: false,          // False for 587 (uses StartTLS)
+  // service: 'gmail',  <-- REMOVED. This was causing the conflict.
+  host: 'smtp.gmail.com', // Manually set host
+  port: 587,              // Manually set port
+  secure: false,          // False for 587 (STARTTLS)
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   tls: {
     ciphers: "SSLv3",
-    rejectUnauthorized: false, // Helps avoid 'self-signed certificate' errors
+    rejectUnauthorized: false,
   },
-  family: 4,
-  connectionTimeout: 10000, 
-  greetingTimeout: 5000 
+  // NETWORK SETTINGS
+  family: 4,              // Force IPv4
+  logger: true,           // Log the actual SMTP conversation
+  debug: true,            // Show debug info
+  connectionTimeout: 30000, // Increased to 30 seconds
+  greetingTimeout: 15000,   // Increased to 15 seconds
+  socketTimeout: 30000      // Increased to 30 seconds
 });
 
 // Verify connection
 transporter.verify(function (error, success) {
   if (error) {
-    console.error('🔴 Transporter Error:', error);
+    console.error('🔴 Transporter Verification Failed:', error);
   } else {
-    console.log("✅ Server is ready to take messages");
+    console.log("✅ Server is ready to send emails");
   }
 });
 
@@ -77,9 +71,7 @@ app.get('/', (req, res) => {
 
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
-
-  // Debugging log
-  console.log(`📩 Attempting to send email from ${name} (${email})`);
+  console.log(`📩 Processing mail from: ${email}`);
 
   const mailOptions = {
     from: process.env.EMAIL_USER, 
@@ -90,8 +82,8 @@ app.post('/contact', async (req, res) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully');
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent:', info.response);
     res.status(200).json({ message: 'Email sent successfully!' });
   } catch (error) {
     console.error('❌ Error sending email:', error); 

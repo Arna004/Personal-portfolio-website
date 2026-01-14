@@ -19,10 +19,8 @@ const Contact = () => {
     try {
       // --- DYNAMIC URL SWITCHING LOGIC ---
       // If hostname is localhost, use port 5000. Otherwise, use the live Render URL.
-      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      const BASE_URL = isLocal 
-        ? "http://localhost:5000" 
-        : "https://personal-portfolio-website-frrf.onrender.com";
+      //const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const BASE_URL = "https://personal-portfolio-website-frrf.onrender.com";
 
       console.log(`Sending request to: ${BASE_URL}/contact`); // Helpful for debugging
 
