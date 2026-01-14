@@ -12,12 +12,20 @@ const Contact = () => {
     e.preventDefault();
     setStatus('submitting');
     
-    // 1. Increase timeout to allow Render server to wake up
+    // 1. Timeout logic for Render cold starts
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 Minutes
 
     try {
-      const BASE_URL = "https://personal-portfolio-website-bgpb.onrender.com"
+      // --- DYNAMIC URL SWITCHING LOGIC ---
+      // If hostname is localhost, use port 5000. Otherwise, use the live Render URL.
+      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const BASE_URL = isLocal 
+        ? "http://localhost:5000" 
+        : "https://personal-portfolio-website-frrf.onrender.com";
+
+      console.log(`Sending request to: ${BASE_URL}/contact`); // Helpful for debugging
+
       const response = await fetch(`${BASE_URL}/contact`, {
         method: 'POST',
         headers: {
@@ -27,14 +35,13 @@ const Contact = () => {
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId); // Clear timeout if response received
+      clearTimeout(timeoutId); 
 
       if (response.ok) {
         setStatus('success');
         setForm({ name: '', email: '', message: '' });
         console.log('Success: Message sent.');
       } else {
-        // Handle server errors (like the 500 error)
         setStatus('error');
         const errorData = await response.json();
         console.error('Server Error:', errorData);
@@ -47,7 +54,7 @@ const Contact = () => {
         alert("The request timed out. The server might be waking up (Render Free Tier). Please click Send again.");
       } else {
         setStatus('error');
-        alert("Network error. Please try again.");
+        alert("Network error. Please try again. Check console for details.");
       }
     }
   };

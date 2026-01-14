@@ -6,49 +6,68 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// --- 1. CRITICAL: Self-Diagnosis Check ---
+// This will print to your Render logs if variables are missing
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.error("__________________________________________________________");
+  console.error("🔴 CRITICAL ERROR: Environment Variables are missing!");
+  console.error("   Render cannot see your .env file.");
+  console.error("   You MUST go to Render Dashboard -> Environment Tab");
+  console.error("   and add 'EMAIL_USER' and 'EMAIL_PASS'.");
+  console.error("__________________________________________________________");
+} else {
+  console.log("✅ Environment Variables detected. Email User:", process.env.EMAIL_USER);
+}
+
+// --- 2. Robust CORS Setup ---
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173", 
+  "https://personal-portfolio-website-frrf.onrender.com" // Your specific live site
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:3000",                  // Allow your local computer
-    "https://personal-portfolio-website-bgpb.onrender.com"     // Allow your live website
-  ],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      // Allow it anyway for simple troubleshooting, but log it
+      console.log("⚠️ Warning: Request from blocked origin:", origin);
+      // For strict security, uncomment the next line:
+      // return callback(new Error('CORS Policy Error'), false);
+    }
+    return callback(null, true);
+  },
+  methods: ["GET", "POST", "OPTIONS"],
   credentials: true
 }));
 
 app.use(express.json());
 
-// 1. Setup Nodemailer Transporter
-// server.js
-
-// ... imports
-
-// 1. Setup Nodemailer Transporter (UPDATED)
+// --- 3. Nodemailer (Cloud-Optimized) ---
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-  host: 'smtp.gmail.com', // Explicitly define the host
-  port: 587,              // CHANGE: Use 587 instead of 465
-  secure: false,          // CHANGE: Must be false for port 587
+  host: 'smtp.gmail.com', 
+  port: 587,              // 587 is the standard for cloud servers
+  secure: false,          // False for 587 (uses StartTLS)
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   tls: {
     ciphers: "SSLv3",
-    rejectUnauthorized: false, 
+    rejectUnauthorized: false, // Helps avoid 'self-signed certificate' errors
   },
-  // Keep these timeout settings, they are good practice
+  family: 4,
   connectionTimeout: 10000, 
-  greetingTimeout: 5000,
-  socketTimeout: 10000 
+  greetingTimeout: 5000 
 });
-
-// ... rest of your code
 
 // Verify connection
 transporter.verify(function (error, success) {
   if (error) {
-    console.log('Transporter Error:', error);
+    console.error('🔴 Transporter Error:', error);
   } else {
-    console.log("Server is ready to take our messages");
+    console.log("✅ Server is ready to take messages");
   }
 });
 
@@ -59,25 +78,27 @@ app.get('/', (req, res) => {
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
+  // Debugging log
+  console.log(`📩 Attempting to send email from ${name} (${email})`);
+
   const mailOptions = {
     from: process.env.EMAIL_USER, 
     replyTo: email,              
     to: process.env.EMAIL_USER,   
     subject: `Portfolio Contact from ${name}`,
-    text: `You have a new message from your portfolio website:\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+    text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
   };
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully');
+    console.log('✅ Email sent successfully');
     res.status(200).json({ message: 'Email sent successfully!' });
   } catch (error) {
-    // LOG THE ACTUAL ERROR so you can see it in Render Dashboard
-    console.error('Error sending email:', error); 
+    console.error('❌ Error sending email:', error); 
     res.status(500).json({ error: 'Failed to send email', details: error.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`🚀 Server listening on port ${PORT}`);
 });
