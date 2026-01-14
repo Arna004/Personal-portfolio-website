@@ -17,7 +17,7 @@ const Contact = () => {
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 Minutes
 
     try {
-      const BASE_URL = "http://localhost:5000"
+      const BASE_URL = "https://personal-portfolio-website-mv0a.onrender.com"
       const response = await fetch(`${BASE_URL}/contact`, {
         method: 'POST',
         headers: {

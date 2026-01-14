@@ -15,16 +15,22 @@ app.use(express.json());
 
 // 1. Setup Nodemailer Transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: 'gmail', // or host: 'smtp.gmail.com'
+  port: 465,        // Ensure this is 465 for secure
+  secure: true,     // true for 465, false for other ports
   auth: {
-    user: process.env.EMAIL_USER, 
-    // IMPORTANT: This must be an App Password, not your login password
-    pass: process.env.EMAIL_PASS   
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
-  // Add this to prevent handshake issues on Render/cloud hosting
+  // --- ADD THESE LINES TO FIX THE TIMEOUT ---
   tls: {
-    rejectUnauthorized: false
-  }
+    ciphers: "SSLv3",      // Helps with older SSL protocols
+    rejectUnauthorized: false, // Sometimes helps on cloud servers
+  },
+  family: 4,               // <--- CRITICAL: Forces IPv4
+  connectionTimeout: 10000, // Wait 10 seconds before timing out
+  greetingTimeout: 5000,    // Wait 5 seconds for server greeting
+  socketTimeout: 10000      // Wait 10 seconds for socket inactivity
 });
 
 // Verify connection
