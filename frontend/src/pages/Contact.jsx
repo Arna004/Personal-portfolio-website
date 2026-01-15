@@ -1,59 +1,51 @@
 import React, { useState } from 'react';
+// No need for 'emailjs' import or 'useRef' anymore
 
 const Contact = () => {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [status, setStatus] = useState('idle'); 
+  const [form, setForm] = useState({ user_name: '', user_email: '', message: '' });
+  const [status, setStatus] = useState('idle');
+
+  // CHANGE THIS: Put your actual Render Backend URL here
+  // If you are running locally, use 'http://localhost:5000/contact'
+  const BACKEND_URL = "https://personal-portfolio-website-frrf.onrender.com/contact"; 
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const sendEmail = async (e) => {
     e.preventDefault();
     setStatus('submitting');
-    
-    // 1. Timeout logic for Render cold starts
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 Minutes
 
     try {
-      // --- DYNAMIC URL SWITCHING LOGIC ---
-      // If hostname is localhost, use port 5000. Otherwise, use the live Render URL.
-      //const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      const BASE_URL = "https://personal-portfolio-website-frrf.onrender.com";
-
-      console.log(`Sending request to: ${BASE_URL}/contact`); // Helpful for debugging
-
-      const response = await fetch(`${BASE_URL}/contact`, {
+      // 1. Send data to YOUR backend, not EmailJS directly
+      const response = await fetch(BACKEND_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(form),
-        signal: controller.signal,
+        // We map the form data to the names the backend expects (name, email, message)
+        body: JSON.stringify({
+          name: form.user_name,
+          email: form.user_email,
+          message: form.message,
+        }),
       });
 
-      clearTimeout(timeoutId); 
+      const data = await response.json();
 
       if (response.ok) {
+        console.log('Backend Success:', data);
         setStatus('success');
-        setForm({ name: '', email: '', message: '' });
-        console.log('Success: Message sent.');
+        setForm({ user_name: '', user_email: '', message: '' }); // Clear form
       } else {
-        setStatus('error');
-        const errorData = await response.json();
-        console.error('Server Error:', errorData);
-        alert(`Failed to send: ${errorData.details || 'Server error'}`);
+        throw new Error(data.error || 'Failed to send message');
       }
+
     } catch (error) {
-      console.error('Fetch Error:', error);
-      
-      if (error.name === 'AbortError') {
-        alert("The request timed out. The server might be waking up (Render Free Tier). Please click Send again.");
-      } else {
-        setStatus('error');
-        alert("Network error. Please try again. Check console for details.");
-      }
+      console.error('Submission Error:', error);
+      setStatus('error');
+      alert(`Failed to send message: ${error.message}`);
     }
   };
 
@@ -99,12 +91,13 @@ const Contact = () => {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            // No 'ref' needed anymore
+            <form onSubmit={sendEmail} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <input
                 type="text"
-                name="name"
+                name="user_name"
                 placeholder="Your Name"
-                value={form.name}
+                value={form.user_name}
                 onChange={handleChange}
                 required
                 disabled={status === 'submitting'}
@@ -117,9 +110,9 @@ const Contact = () => {
               />
               <input
                 type="email"
-                name="email"
+                name="user_email"
                 placeholder="Your Email"
-                value={form.email}
+                value={form.user_email}
                 onChange={handleChange}
                 required
                 disabled={status === 'submitting'}
