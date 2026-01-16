@@ -28,7 +28,7 @@ if (missingVars.length > 0) {
 
 // --- 2. CORS Setup ---
 const allowedOrigins = [
-  "http://localhost:3000",
+  "https://arna-portfolio-website-4r79.vercel.app/contact",
   "https://personal-portfolio-website-frrf.onrender.com",
   // Add any other domains you deploy your frontend to
 ];
