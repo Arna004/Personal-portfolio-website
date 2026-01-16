@@ -1,15 +1,15 @@
 import React from 'react';
 import profilePic from '../assets/profile.jpg';
-import backgroundVideo from '../assets/background.mp4';
+// import backgroundVideo from '../assets/background.mp4';
 import '../App.css';
 
 const Home = () => {
   return (
     <>
-      <video autoPlay muted loop className="video-background">
+      {/* <video autoPlay muted loop className="video-background">
         <source src={backgroundVideo} type="video/mp4" />
         Your browser does not support the video tag.
-      </video>
+      </video> */}
 
       <div className="hero-content">
         <div>
